@@ -29,10 +29,10 @@ for x in range(5000):
     #create keyframe at the starting location
     bpy.ops.anim.keyframe_insert_menu(type='LocRotScale')
     
-    #determine possible end X location (plus .1, just to ensure some kind of movement)
+    #determine possible end X location
     #Y location will NOT change
     endX = random.uniform(-4.69,4.69)
-    while(endX < (startX + .1)):
+    while(endX < (startX)):
         #retry random number if location if left of start
         #!!potentially slow, revise!!
         endX = random.uniform(-4.69,4.69)
@@ -50,7 +50,7 @@ for x in range(5000):
     #prepare animation output
     #change location to your desired output folder
     #add an extra backslash to path
-    location = "C:\\Users\\zkirb\\Documents\\Blender\\REU\\anims\\"
+    location = "C:\\anims\\"
     fileName = str('{0:.5f}'.format(startX)) + '_' + str('{0:.5f}'.format(endX)) + '.avi'
     bpy.context.scene.render.filepath = location + fileName
     

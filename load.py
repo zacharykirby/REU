@@ -58,12 +58,30 @@ def load_anim(folder):
     print('Standard deviation:', np.std(dataset))
     return dataset
 
+def maybe_pickle(folders,force=False):
+    dataset_names = []
+    for folder in folders:
+        set_filename = folder + '.pickle'
+        dataset_names.append(set_filename)
+        if os.path.exists(set_filename) and not force:
+            print('%s present - Skipping...' % set_filename)
+        else:
+            print('Pickling %s.' % set_filename)
+            dataset = load_anim(folder)
+            try:
+                with open(set_filename, 'wb') as f:
+                    pickle.dump(dataset, f, pickle.HIGHEST_PROTOCOL)
+            except Exception as e:
+                print('Unable to save to',set_filename,':',e)
+    return dataset_names
+
 create_folders()
 ##print(train_folders)
 ##print(test_folders)
 ##print(valid_folders)
 
 #load animations
-for folder in train_folders:
-    load_anim(folder)
+train_datasets = maybe_pickle(train_folders)
+test_datasets = maybe_pickle(test_folders)
+valid_datasets = maybe_pickle(valid_folders)
 

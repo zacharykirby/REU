@@ -10,3 +10,7 @@
 - Find the button labeled **Run Script** above the console.
 - Click the **Run Script** button
 - Wait some time, this process may take a while. Blender will freeze but will continue working.
+
+## Using load.py
+This python script will take the animations created, push them into 3-D arrays of size (frame_count,image_length,image_width), and create a pickle file for each animation.
+- Place this file in the folder containing the animation folders (*Default: C:/anims/load.py*)

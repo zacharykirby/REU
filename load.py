@@ -42,9 +42,8 @@ def load_anim(folder):
     for frame in frame_files:
         frame_file = os.path.join(folder,frame)
         try:
-            #normalize data
-            frame_data = (ndimage.imread(frame_file).astype(float) -
-                          pixel_depth / 2) / pixel_depth
+            #normalize data to 0-1
+            frame_data = (ndimage.imread(frame_file).astype(float)) / pixel_depth
             if frame_data.shape != (img_size,img_size):
                 raise Exception('Unexpected image shape: %s' %
                                 str(frame_data.shape))

@@ -2,57 +2,70 @@
 # -*- coding: utf-8 -*-
 """
 Created on Wed Jun 28 21:22:59 2017
-Last modified: Wed July 6, 2017
+Last modified: Wed July 19, 2017
 
-@author: maida
+@author: maida, kirby
 
 This is a convolutional LSTM prototype for predictive coding.
 It uses a constant image for training. 
-Not yet debugged.
 """
 
 import os
 import sys
-import numpy as np
-from scipy import ndimage
+#import numpy as np
 #import matplotlib.pyplot as plt
 #import matplotlib.cm as cm
 import tensorflow as tf
-from six.moves import cPickle as pickle
 
 print("Python version    :", sys.version)
-print("TensorFlow version: ", tf.__version__)
+print("TensorFlow version: ", tf.VERSION)
 print("Current directory : ", os.getcwd())
 
 # For logging w/ TensorBoard
 # The /tmp directory is periodically cleaned, such as on reboot.
 # Since you probably don't want to keep these logs around forever,
 # this is a practical place to put them.
-LOGDIR = "./graphs"
+LOGDIR = "/tmp/convLSTM/"
 
-IM_SZ_LEN = 256
-IM_SZ_WID = 256
-BATCH_SZ  = 12    #how many frames(?) to train with
-NUM_UNROLLINGS = 3
+IM_SZ_LEN = 64 # For later experiments, increase size as necessary
+IM_SZ_WID = 64
+BATCH_SZ  = 1
+NUM_UNROLLINGS = 2   # increase to 3 after debugging
+#LEARNING_RATE  = 0.1 # long story, may need simulated anealing
 NUM_TRAINING_STEPS = 1201
 
-#load our pickled animation as an ndarray
-#((this one is (21,256,256), we need to reshape to 4D
-animation = pickle.load(open('0.pickle','rb'))
-print(animation.shape)
-#print(animation)
-
-#slice the first 12 frames? to predict the 13th
-animation = tf.slice(animation,[0,0,0],[12,256,256])
-print(animation.shape)
-#to 4D
-animation = tf.expand_dims(animation,axis=-1)
-print(animation.shape)
-
-
+#model = tf.Graph()
+#with model.as_default():
+#    file_contents = tf.read_file('image_0004_leafCropped.jpg')
+#    image         = tf.image.decode_jpeg(file_contents)
+#    image         = tf.image.rgb_to_grayscale(image) # Input to the LSTM !!!
+#    image         = tf.image.resize_images(image, [IM_SZ_LEN, IM_SZ_WID])
+#    image         = tf.expand_dims(image, 0)
+#    image         = (1/255.0) * image                # normalize to range 0-1
+#    print("Shape of image: ", tf.shape(image))
+#    print("Rank of  image: ", tf.rank(image))
+#    print("Size of  image: ", tf.size(image))
+#
+#with tf.Session(graph=model) as sess:
+#    print("Shape of image: ", tf.shape(image).eval())
+#    print("Rank of  image: ", tf.rank(image).eval())
+#    print("Size of  image: ", tf.size(image).eval())
+#    output = sess.run(image)
+#    
+#
+#print('Output shape after run() evaluation: ', output.shape)
+#output.resize((IM_SZ_LEN, IM_SZ_WID))
+#print('Resized for plt.imshow() :', output.shape)
+#print('Print some matrix values to show it is grayscale.')
+#print(output)
+#print('Display the grayscale image.')
+#plt.imshow(output, cmap = cm.Greys_r)
+   
 graph = tf.Graph()
 with graph.as_default():
     
+    anims_placeholder = tf.placeholder(tf.float32, shape=(BATCH_SZ,IM_SZ_LEN,IM_SZ_WID))
+
     # Variable (wt) definitions. Only variables can be trained.
     # Naming conventions follow *Deep Learning*, Goodfellow et al, 2016.
     # input update
@@ -160,7 +173,7 @@ with graph.as_default():
     with tf.name_scope("full_model"):
         for _ in range(NUM_UNROLLINGS): # three unrollings
             lstm_state, lstm_output = convLstmLayer(err_input, lstm_state, lstm_output)
-            err_input               = errorModule(animation, lstm_output)
+            err_input               = errorModule(image, lstm_output)
 
     # "prediction" is always lstm_output
 #    error_module_output = errorModule(x, lstm_output)
@@ -186,7 +199,7 @@ with graph.as_default():
         tf.summary.image("initial_error2",
                          tf.slice(initial_err_input, [0,0,0,1], [1, 64, 64, 1]), 3)
     with tf.name_scope("input"):
-        tf.summary.image("image", animation, 3)
+        tf.summary.image("image", image, 3)
     with tf.name_scope("lstm"):
         tf.summary.image("lstm_out", lstm_output, 3)
         tf.summary.image("lstm_state", lstm_state, 3)
@@ -209,9 +222,9 @@ with tf.Session(graph=graph) as sess:
     writer = tf.summary.FileWriter(LOGDIR + "1") # += 1 for each run till /tmp is cleard
     writer.add_graph(sess.graph)
 
-    print("Shape of animation: ", tf.shape(animation).eval())
-    print("Rank of  animation: ", tf.rank(animation).eval())
-    print("Size of  animation: ", tf.size(animation).eval())
+    print("Shape of image: ", tf.shape(image).eval())
+    print("Rank of  image: ", tf.rank(image).eval())
+    print("Size of  image: ", tf.size(image).eval())
     
     print("Shape of initial_lstm_state: ", tf.shape(initial_lstm_state).eval())
     print("Rank of  initial_lstm_state: ", tf.rank(initial_lstm_state).eval())
@@ -248,4 +261,10 @@ with tf.Session(graph=graph) as sess:
         
         print("Step: ", step)
         print("Loss: ", l)
+
+
+
+
+
+
 

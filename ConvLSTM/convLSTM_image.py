@@ -16,6 +16,8 @@ import sys
 #import matplotlib.pyplot as plt
 #import matplotlib.cm as cm
 import tensorflow as tf
+from PIL import Image
+import numpy
 
 print("Python version    :", sys.version)
 print("TensorFlow version: ", tf.VERSION)
@@ -63,13 +65,16 @@ NUM_TRAINING_STEPS = 351
    
 graph = tf.Graph()
 with graph.as_default():
-    
+    '''
     file_contents = tf.read_file('image_0004_leafCropped.jpg')
     image         = tf.image.decode_jpeg(file_contents)
     image         = tf.image.rgb_to_grayscale(image) # Input to the LSTM !!!
     image         = tf.image.resize_images(image, [IM_SZ_LEN, IM_SZ_WID])
     image         = tf.expand_dims(image, 0)
     image         = (1/255.0) * image                # normalize to range 0-1
+    '''
+    image = tf.placeholder(tf.float32, shape=(IM_SZ_LEN,IM_SZ_WID))
+    image = tf.reshape(image,[1,IM_SZ_LEN,IM_SZ_WID,1])
 
     # Variable (wt) definitions. Only variables can be trained.
     # Naming conventions follow *Deep Learning*, Goodfellow et al, 2016.
@@ -295,9 +300,20 @@ with tf.Session(graph=graph) as sess:
 # Below would only used to test if the input makes sense
 #    output = sess.run(image)
 
+    file_contents = tf.read_file('image_0004_leafCropped.jpg')
+    file         = tf.image.decode_jpeg(file_contents)
+    file         = tf.image.rgb_to_grayscale(file) # Input to the LSTM !!!
+    file         = tf.image.resize_images(file, [IM_SZ_LEN, IM_SZ_WID])
+    file         = (1/255.0) * file
+
+    file_data = Image.open('image_0004_leafCropped.jpg').convert('L')
+    file_arr = numpy.array(file_data)
+    np_file = (1/255.0) * file_arr
+    np_file = numpy.resize(np_file,(IM_SZ_LEN,IM_SZ_WID))
+
     for step in range(NUM_TRAINING_STEPS): # 0 to 100
         if step % 1 == 0:
-            ms = sess.run(msumm)
+            ms = sess.run(msumm, feed_dict={image:np_file})
             writer.add_summary(ms, step)
         _, l, predictions = sess.run([optimizer, loss, lstm_output])
         

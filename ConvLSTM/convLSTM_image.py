@@ -36,45 +36,17 @@ NUM_UNROLLINGS = 2   # increase to 3 after debugging
 #LEARNING_RATE  = 0.1 # long story, may need simulated anealing
 NUM_TRAINING_STEPS = 351
 
-#model = tf.Graph()
-#with model.as_default():
-#    file_contents = tf.read_file('image_0004_leafCropped.jpg')
-#    image         = tf.image.decode_jpeg(file_contents)
-#    image         = tf.image.rgb_to_grayscale(image) # Input to the LSTM !!!
-#    image         = tf.image.resize_images(image, [IM_SZ_LEN, IM_SZ_WID])
-#    image         = tf.expand_dims(image, 0)
-#    image         = (1/255.0) * image                # normalize to range 0-1
-#    print("Shape of image: ", tf.shape(image))
-#    print("Rank of  image: ", tf.rank(image))
-#    print("Size of  image: ", tf.size(image))
-#
-#with tf.Session(graph=model) as sess:
-#    print("Shape of image: ", tf.shape(image).eval())
-#    print("Rank of  image: ", tf.rank(image).eval())
-#    print("Size of  image: ", tf.size(image).eval())
-#    output = sess.run(image)
-#    
-#
-#print('Output shape after run() evaluation: ', output.shape)
-#output.resize((IM_SZ_LEN, IM_SZ_WID))
-#print('Resized for plt.imshow() :', output.shape)
-#print('Print some matrix values to show it is grayscale.')
-#print(output)
-#print('Display the grayscale image.')
-#plt.imshow(output, cmap = cm.Greys_r)
    
 graph = tf.Graph()
 with graph.as_default():
-    '''
+
     file_contents = tf.read_file('image_0004_leafCropped.jpg')
     image         = tf.image.decode_jpeg(file_contents)
     image         = tf.image.rgb_to_grayscale(image) # Input to the LSTM !!!
     image         = tf.image.resize_images(image, [IM_SZ_LEN, IM_SZ_WID])
     image         = tf.expand_dims(image, 0)
     image         = (1/255.0) * image                # normalize to range 0-1
-    '''
-    image = tf.placeholder(tf.float32, shape=(IM_SZ_LEN,IM_SZ_WID))
-    image = tf.reshape(image,[1,IM_SZ_LEN,IM_SZ_WID,1])
+
 
     # Variable (wt) definitions. Only variables can be trained.
     # Naming conventions follow *Deep Learning*, Goodfellow et al, 2016.
@@ -223,39 +195,63 @@ with graph.as_default():
 
     with tf.name_scope('weights'):
         with tf.name_scope('input_update'):
-##            newU = tf.slice(U,[0,0,0,0],[5,5,1,1])
-##            newW = tf.slice(W,[0,0,0,0],[5,5,1,1])
-##            newU = tf.squeeze(newU)     #now a viewable [5x5] matrix
-##            newW = tf.squeeze(newW)
-            tf.summary.image('U', U)
-            tf.summary.image('W', W)
+            newU1 = tf.slice(U,[0,0,0,0],[5,5,1,1])
+            newU2 = tf.slice(U,[0,0,1,0],[5,5,1,1])
+            newW = tf.slice(W,[0,0,0,0],[5,5,1,1])
+            newU1 = tf.squeeze(newU1)     #now a viewable [5x5] matrix
+            newU2 = tf.squeeze(newU2)
+            newW = tf.squeeze(newW)
+            newU1 = tf.reshape(newU1,[1,5,5,1])
+            newU2 = tf.reshape(newU2,[1,5,5,1])
+            newW = tf.reshape(newW,[1,5,5,1])
+            tf.summary.image('U1', newU1)
+            tf.summary.image('U2', newU2)
+            tf.summary.image('W', newW)
             tf.summary.image('B', B)
             
         with tf.name_scope('input_gate'):
-##            newUg = tf.slice(Ug,[0,0,0,0],[5,5,1,1])
-##            newWg = tf.slice(Wg,[0,0,0,0],[5,5,1,1])
-##            newUg = tf.squeeze(newUg)
-##            newWg = tf.squeeze(newWg)
-            tf.summary.image('Ug', Ug)
-            tf.summary.image('Wg', Wg)
+            newUg1 = tf.slice(Ug,[0,0,0,0],[5,5,1,1])
+            newUg2 = tf.slice(Ug,[0,0,1,0],[5,5,1,1])
+            newWg = tf.slice(Wg,[0,0,0,0],[5,5,1,1])
+            newUg1 = tf.squeeze(newUg1)     #now a viewable [5x5] matrix
+            newUg2 = tf.squeeze(newUg2)
+            newWg = tf.squeeze(newWg)
+            newUg1 = tf.reshape(newUg1,[1,5,5,1])
+            newUg2 = tf.reshape(newUg2,[1,5,5,1])
+            newWg = tf.reshape(newWg,[1,5,5,1])
+            tf.summary.image('Ug1', newUg1)
+            tf.summary.image('Ug2', newUg2)
+            tf.summary.image('Wg', newWg)
             tf.summary.image('Bg', Bg)
 
         with tf.name_scope('forget_gate'):
-##            newUf = tf.slice(Uf,[0,0,0,0],[5,5,1,1])
-##            newWf = tf.slice(Wf,[0,0,0,0],[5,5,1,1])
-##            newUf = tf.squeeze(newUf)
-##            newWf = tf.squeeze(newWf)
-            tf.summary.image('Uf', Uf)
-            tf.summary.image('Wf', Wf)
+            newUf1 = tf.slice(Uf,[0,0,0,0],[5,5,1,1])
+            newUf2 = tf.slice(Uf,[0,0,1,0],[5,5,1,1])
+            newWf = tf.slice(Wf,[0,0,0,0],[5,5,1,1])
+            newUf1 = tf.squeeze(newUf1)     #now a viewable [5x5] matrix
+            newUf2 = tf.squeeze(newUf2)
+            newWf = tf.squeeze(newWf)
+            newUf1 = tf.reshape(newUf1,[1,5,5,1])
+            newUf2 = tf.reshape(newUf2,[1,5,5,1])
+            newWf = tf.reshape(newWf,[1,5,5,1])
+            tf.summary.image('Uf1', newUf1)
+            tf.summary.image('Uf2', newUf2)
+            tf.summary.image('Wf', newWf)
             tf.summary.image('Bf', Bf)
         
         with tf.name_scope('output_gate'):
-##            newUo = tf.slice(Uo,[0,0,0,0],[5,5,1,1])
-##            newWo = tf.slice(Wo,[0,0,0,0],[5,5,1,1])
-##            newUo = tf.squeeze(newUo)
-##            newWo = tf.squeeze(newWo)
-            tf.summary.image('Uo', Uo)
-            tf.summary.image('Wo', Wo)
+            newUo1 = tf.slice(Uo,[0,0,0,0],[5,5,1,1])
+            newUo2 = tf.slice(Uo,[0,0,1,0],[5,5,1,1])
+            newWo = tf.slice(Wo,[0,0,0,0],[5,5,1,1])
+            newUo1 = tf.squeeze(newUo1)     #now a viewable [5x5] matrix
+            newUo2 = tf.squeeze(newUo2)
+            newWo = tf.squeeze(newWo)
+            newUo1 = tf.reshape(newUo1,[1,5,5,1])
+            newUo2 = tf.reshape(newUo2,[1,5,5,1])
+            newWo = tf.reshape(newWo,[1,5,5,1])
+            tf.summary.image('Uo1', newUo1)
+            tf.summary.image('Uo2', newUo2)
+            tf.summary.image('Wo', newWo)
             tf.summary.image('Bo', Bo)
         
 
@@ -300,20 +296,9 @@ with tf.Session(graph=graph) as sess:
 # Below would only used to test if the input makes sense
 #    output = sess.run(image)
 
-    file_contents = tf.read_file('image_0004_leafCropped.jpg')
-    file         = tf.image.decode_jpeg(file_contents)
-    file         = tf.image.rgb_to_grayscale(file) # Input to the LSTM !!!
-    file         = tf.image.resize_images(file, [IM_SZ_LEN, IM_SZ_WID])
-    file         = (1/255.0) * file
-
-    file_data = Image.open('image_0004_leafCropped.jpg').convert('L')
-    file_arr = numpy.array(file_data)
-    np_file = (1/255.0) * file_arr
-    np_file = numpy.resize(np_file,(IM_SZ_LEN,IM_SZ_WID))
-
     for step in range(NUM_TRAINING_STEPS): # 0 to 100
         if step % 1 == 0:
-            ms = sess.run(msumm, feed_dict={image:np_file})
+            ms = sess.run(msumm)
             writer.add_summary(ms, step)
         _, l, predictions = sess.run([optimizer, loss, lstm_output])
         

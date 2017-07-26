@@ -16,6 +16,7 @@ import sys
 #import matplotlib.pyplot as plt
 #import matplotlib.cm as cm
 import tensorflow as tf
+import pickle
 
 print("Python version    :", sys.version)
 print("TensorFlow version: ", tf.VERSION)
@@ -27,44 +28,24 @@ print("Current directory : ", os.getcwd())
 # this is a practical place to put them.
 LOGDIR = "/tmp/convLSTM/"
 
-IM_SZ_LEN = 64 # For later experiments, increase size as necessary
-IM_SZ_WID = 64
+IM_SZ_LEN = 256 # For later experiments, increase size as necessary
+IM_SZ_WID = 256
 BATCH_SZ  = 1
-NUM_UNROLLINGS = 2   # increase to 3 after debugging
+NUM_UNROLLINGS = 3   # increase to 3 after debugging
 #LEARNING_RATE  = 0.1 # long story, may need simulated anealing
-NUM_TRAINING_STEPS = 1201
-
-#model = tf.Graph()
-#with model.as_default():
-#    file_contents = tf.read_file('image_0004_leafCropped.jpg')
-#    image         = tf.image.decode_jpeg(file_contents)
-#    image         = tf.image.rgb_to_grayscale(image) # Input to the LSTM !!!
-#    image         = tf.image.resize_images(image, [IM_SZ_LEN, IM_SZ_WID])
-#    image         = tf.expand_dims(image, 0)
-#    image         = (1/255.0) * image                # normalize to range 0-1
-#    print("Shape of image: ", tf.shape(image))
-#    print("Rank of  image: ", tf.rank(image))
-#    print("Size of  image: ", tf.size(image))
-#
-#with tf.Session(graph=model) as sess:
-#    print("Shape of image: ", tf.shape(image).eval())
-#    print("Rank of  image: ", tf.rank(image).eval())
-#    print("Size of  image: ", tf.size(image).eval())
-#    output = sess.run(image)
-#    
-#
-#print('Output shape after run() evaluation: ', output.shape)
-#output.resize((IM_SZ_LEN, IM_SZ_WID))
-#print('Resized for plt.imshow() :', output.shape)
-#print('Print some matrix values to show it is grayscale.')
-#print(output)
-#print('Display the grayscale image.')
-#plt.imshow(output, cmap = cm.Greys_r)
+NUM_TRAINING_STEPS = 351
+counter = 0
    
 graph = tf.Graph()
 with graph.as_default():
     
-    anims_placeholder = tf.placeholder(tf.float32, shape=(BATCH_SZ,IM_SZ_LEN,IM_SZ_WID))
+    anim = pickle.load(open('0.pickle','rb'))
+    print(anim.shape)   #(21,256,256)
+    anim = tf.expand_dims(anim, axis=-1)
+    print(anim.shape)
+    image = tf.slice(anim,[counter,0,0,0],[1,IM_SZ_LEN,IM_SZ_WID,1])
+    print(image.shape)
+    
 
     # Variable (wt) definitions. Only variables can be trained.
     # Naming conventions follow *Deep Learning*, Goodfellow et al, 2016.
@@ -174,6 +155,7 @@ with graph.as_default():
         for _ in range(NUM_UNROLLINGS): # three unrollings
             lstm_state, lstm_output = convLstmLayer(err_input, lstm_state, lstm_output)
             err_input               = errorModule(image, lstm_output)
+            counter = counter + 1
 
     # "prediction" is always lstm_output
 #    error_module_output = errorModule(x, lstm_output)
@@ -195,22 +177,87 @@ with graph.as_default():
         tf.summary.image("initial_lstm_state", initial_lstm_state, 3)
         tf.summary.image("initial_lstm_output", initial_lstm_output, 3)
         tf.summary.image("initial_error1", 
-                         tf.slice(initial_err_input, [0,0,0,0], [1, 64, 64, 1]), 3)
+                         tf.slice(initial_err_input, [0,0,0,0], [1, IM_SZ_LEN, IM_SZ_WID, 1]), 3)
         tf.summary.image("initial_error2",
-                         tf.slice(initial_err_input, [0,0,0,1], [1, 64, 64, 1]), 3)
+                         tf.slice(initial_err_input, [0,0,0,1], [1, IM_SZ_LEN, IM_SZ_WID, 1]), 3)
+
     with tf.name_scope("input"):
         tf.summary.image("image", image, 3)
+
     with tf.name_scope("lstm"):
         tf.summary.image("lstm_out", lstm_output, 3)
         tf.summary.image("lstm_state", lstm_state, 3)
+
     with tf.name_scope("error"):
         tf.summary.image("perror_1", 
-                         tf.slice(err_input, [0,0,0,0], [1, 64, 64, 1]), 3)
+                         tf.slice(err_input, [0,0,0,0], [1, IM_SZ_LEN, IM_SZ_WID, 1]), 3)
         tf.summary.image("perror_2", 
-                         tf.slice(err_input, [0,0,0,1], [1, 64, 64, 1]), 3)
+                         tf.slice(err_input, [0,0,0,1], [1, IM_SZ_LEN, IM_SZ_WID, 1]), 3)
+
     with tf.name_scope('optimizer'):
         tf.summary.scalar('loss',loss)
         tf.summary.scalar('learning_rate',learning_rate)
+
+    with tf.name_scope('weights'):
+        with tf.name_scope('input_update'):
+            newU1 = tf.slice(U,[0,0,0,0],[5,5,1,1])
+            newU2 = tf.slice(U,[0,0,1,0],[5,5,1,1])
+            newW = tf.slice(W,[0,0,0,0],[5,5,1,1])
+            newU1 = tf.squeeze(newU1)     #now a viewable [5x5] matrix
+            newU2 = tf.squeeze(newU2)
+            newW = tf.squeeze(newW)
+            newU1 = tf.reshape(newU1,[1,5,5,1])
+            newU2 = tf.reshape(newU2,[1,5,5,1])
+            newW = tf.reshape(newW,[1,5,5,1])
+            tf.summary.image('U1', newU1)
+            tf.summary.image('U2', newU2)
+            tf.summary.image('W', newW)
+            tf.summary.image('B', B)
+            
+        with tf.name_scope('input_gate'):
+            newUg1 = tf.slice(Ug,[0,0,0,0],[5,5,1,1])
+            newUg2 = tf.slice(Ug,[0,0,1,0],[5,5,1,1])
+            newWg = tf.slice(Wg,[0,0,0,0],[5,5,1,1])
+            newUg1 = tf.squeeze(newUg1)     #now a viewable [5x5] matrix
+            newUg2 = tf.squeeze(newUg2)
+            newWg = tf.squeeze(newWg)
+            newUg1 = tf.reshape(newUg1,[1,5,5,1])
+            newUg2 = tf.reshape(newUg2,[1,5,5,1])
+            newWg = tf.reshape(newWg,[1,5,5,1])
+            tf.summary.image('Ug1', newUg1)
+            tf.summary.image('Ug2', newUg2)
+            tf.summary.image('Wg', newWg)
+            tf.summary.image('Bg', Bg)
+
+        with tf.name_scope('forget_gate'):
+            newUf1 = tf.slice(Uf,[0,0,0,0],[5,5,1,1])
+            newUf2 = tf.slice(Uf,[0,0,1,0],[5,5,1,1])
+            newWf = tf.slice(Wf,[0,0,0,0],[5,5,1,1])
+            newUf1 = tf.squeeze(newUf1)     #now a viewable [5x5] matrix
+            newUf2 = tf.squeeze(newUf2)
+            newWf = tf.squeeze(newWf)
+            newUf1 = tf.reshape(newUf1,[1,5,5,1])
+            newUf2 = tf.reshape(newUf2,[1,5,5,1])
+            newWf = tf.reshape(newWf,[1,5,5,1])
+            tf.summary.image('Uf1', newUf1)
+            tf.summary.image('Uf2', newUf2)
+            tf.summary.image('Wf', newWf)
+            tf.summary.image('Bf', Bf)
+        
+        with tf.name_scope('output_gate'):
+            newUo1 = tf.slice(Uo,[0,0,0,0],[5,5,1,1])
+            newUo2 = tf.slice(Uo,[0,0,1,0],[5,5,1,1])
+            newWo = tf.slice(Wo,[0,0,0,0],[5,5,1,1])
+            newUo1 = tf.squeeze(newUo1)     #now a viewable [5x5] matrix
+            newUo2 = tf.squeeze(newUo2)
+            newWo = tf.squeeze(newWo)
+            newUo1 = tf.reshape(newUo1,[1,5,5,1])
+            newUo2 = tf.reshape(newUo2,[1,5,5,1])
+            newWo = tf.reshape(newWo,[1,5,5,1])
+            tf.summary.image('Uo1', newUo1)
+            tf.summary.image('Uo2', newUo2)
+            tf.summary.image('Wo', newWo)
+            tf.summary.image('Bo', Bo)
 
 # Start training
 with tf.Session(graph=graph) as sess:
@@ -261,10 +308,3 @@ with tf.Session(graph=graph) as sess:
         
         print("Step: ", step)
         print("Loss: ", l)
-
-
-
-
-
-
-

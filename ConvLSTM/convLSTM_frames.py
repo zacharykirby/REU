@@ -156,6 +156,8 @@ with graph.as_default():
             lstm_state, lstm_output = convLstmLayer(err_input, lstm_state, lstm_output)
             err_input               = errorModule(image, lstm_output)
             counter = counter + 1
+            print(counter)
+            image = tf.slice(anim,[counter,0,0,0],[1,IM_SZ_LEN,IM_SZ_WID,1])
 
     # "prediction" is always lstm_output
 #    error_module_output = errorModule(x, lstm_output)

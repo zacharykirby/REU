@@ -33,8 +33,8 @@ IM_SZ_WID = 256
 BATCH_SZ  = 1
 NUM_UNROLLINGS = 3   # increase to 3 after debugging
 #LEARNING_RATE  = 0.1 # long story, may need simulated anealing
-NUM_TRAINING_STEPS = 351
-counter = 0
+NUM_TRAINING_STEPS = 1201
+counter = 6
    
 graph = tf.Graph()
 with graph.as_default():
@@ -114,20 +114,20 @@ with graph.as_default():
                      h  :  current output   (tensor: [1, 64, 64, 1])
         """
         with tf.name_scope("LSTM"):
-          inp = tf.sigmoid(tf.nn.conv2d(err_inp, U, [1, 1, 1, 1], padding='SAME')
+          inp = tf.nn.tanh(tf.nn.conv2d(err_inp, U, [1, 1, 1, 1], padding='SAME')
                          + tf.nn.conv2d(prev_h, W, [1, 1, 1, 1], padding='SAME')
                          + B, name="inp")
-          g_gate = tf.sigmoid(tf.nn.conv2d(err_inp, Ug, [1, 1, 1, 1], padding='SAME')
+          g_gate = tf.nn.tanh(tf.nn.conv2d(err_inp, Ug, [1, 1, 1, 1], padding='SAME')
                             + tf.nn.conv2d(prev_h, Wg, [1, 1, 1, 1], padding='SAME')
                             + Bg, name="g_gate")  # i_gate is more common name
-          f_gate = tf.sigmoid(tf.nn.conv2d(err_inp, Uf, [1, 1, 1, 1], padding='SAME')
+          f_gate = tf.nn.tanh(tf.nn.conv2d(err_inp, Uf, [1, 1, 1, 1], padding='SAME')
                             + tf.nn.conv2d(prev_h, Wf, [1, 1, 1, 1], padding='SAME')
                             + Bf, name="f_gate")
-          q_gate = tf.sigmoid(tf.nn.conv2d(err_inp, Uo, [1, 1, 1, 1], padding='SAME')
+          q_gate = tf.nn.tanh(tf.nn.conv2d(err_inp, Uo, [1, 1, 1, 1], padding='SAME')
                             + tf.nn.conv2d(prev_h, Wo, [1, 1, 1, 1], padding='SAME')
                             + Bo, name="q_gate")  # o_gate is more common name
           s = tf.add(tf.multiply(f_gate, prev_s), tf.multiply(g_gate, inp), name="state")
-          h = tf.multiply(q_gate, tf.sigmoid(s), name="output") # Also try relu
+          h = tf.multiply(q_gate, tf.nn.relu6(s), name="output") # Also try relu
           return s, h       # normally above is tanh
 
     # errorModule doesn't use variables, so doesn't undergo training

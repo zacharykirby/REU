@@ -1,10 +1,11 @@
 # Research Experience for Undergraduates Summer 2017
 *Resources and code from my Summer 2017 REU with [Dr. Anthony Maida](http://www.cacs.louisiana.edu/~maida/)*
+
 My reseach was focused on creating a Deep Learning neural network that can predict object movement from video input.
-The model created uses a LSTM model that utilizes convoloution to process images, called convLSTM.
+The model created uses a LSTM model that utilizes convoloution to process images, called a convLSTM.
 The purpose of this research was to recreate a model similar to that of [PredNet](https://coxlab.github.io/prednet/).
 It uses an unsupervised convLSTM model that trains off a variety of video data, but is much to complicated for this summer.
-I helped create a simpler convLSTM model that can detect 2D movement of a black sphere on a whiote background.
+I helped create a simpler convLSTM model that can detect 2D movement of a black sphere on a white background.
 This model is basic, but can be expanded by the addition of more featuremaps and slight code reshaping.
 
 ## My Time Spent

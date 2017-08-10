@@ -12,7 +12,6 @@ This model is basic, but can be expanded by the addition of more featuremaps and
 During this summer REU, I worked alongside Dr. Maida and his lab group. We had weekly lab presentations where we would showcase our progress. I started off with reading the papers linked below and Google's Deep Learning course on [Udacity](https://classroom.udacity.com/courses/ud730). The convLSTM model created was primarily dictated by Dr. Maida, but went through individual updates as the research group progressed.
 
 ## My Contribution
-*This entire code was curated under Dr. Maida, I did not code everything.*
 - Created a [Blender](https://www.blender.org) python script to automate video creation.
 - Created a script to load the created animations into ndarrays of size [frame_count, 256, 256].
 - Created a method to load the each animation ndarray into a .pickle serialized file for use in the convLSTM.
@@ -21,12 +20,11 @@ During this summer REU, I worked alongside Dr. Maida and his lab group. We had w
 - Created a new model that uses the convLSTM model as a class, able to feed multiple animations and return the new trained weights (loss increased, but predictions became more accurate).
 - Various bug fixes during development.
 
-
 ## Using Blender Resources
 - Download the contained .blend file
 - Make sure Blender is installed (from [here](https://www.blender.org))
 - Double click the .blend file, or open it in Blender with File -> Open..
-- Edit the animation output location (line 49) (*Default: C:/anims/*)
+- Edit the animation output location (line 49) (*Default: /tmp/anims*)
 - Navigate to the bottom of the python code window
 - Find the button labeled **Run Script** above the console.
 - Click the **Run Script** button
@@ -34,7 +32,7 @@ During this summer REU, I worked alongside Dr. Maida and his lab group. We had w
 
 ## Using load.py
 This python script will take the animations created, push them into 3-D arrays of size (frame_count,image_length,image_width), and create a pickle file for each animation.
-- Place this file in the folder containing the animation folders (*Default: C:/anims/load.py*)
+- Place this file in the folder containing the animation folders (*Default: /tmp/anims/load.py*)
 
 ## Resources (for citation purposes)
 - [Deep Predictive Coding Networks for Video Prediction and Unsupervised Learning](https://arxiv.org/abs/1605.08104)

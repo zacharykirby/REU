@@ -42,7 +42,7 @@ class ConvLSTM:
         LOGDIR = "/tmp/convLSTM/"
 
         NUM_UNROLLINGS = 3
-        NUM_TRAINING_STEPS = 101
+        NUM_TRAINING_STEPS = 101    #add more steps on desktop
         counter = self.counter
 
     

@@ -17,6 +17,7 @@ During this summer REU, I worked alongside Dr. Maida and his lab group. We had w
 - Created a method to load the each animation ndarray into a .pickle serialized file for use in the convLSTM.
 - Optimized the learning rate by adding an exponentially decaying learning as opposed to a static rate.
 - Created a new optimizer block to improve loss from ~800 to ~130 utilizing tf.clip_by_global_norm() to handle exploding or vanishing gradients.
+- Added weight visualizations by splitting the multi channel tensors along their first axis and added code to visualize the weight matrixes in TensorBoard.
 - Created a new model that uses the convLSTM model as a class, able to feed multiple animations and return the new trained weights (loss increased, but predictions became more accurate).
 - Various bug fixes during development.
 
